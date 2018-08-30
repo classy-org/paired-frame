@@ -1,0 +1,24 @@
+{
+  "name": "paired-frame",
+  "version": "0.0.1",
+  "description": "Helper library for cross-frame communication",
+  "browser": "./lib/PairedFrame.min.js",
+  "repository": "https://github.com/classy-org/paired-frame",
+  "author": "Tom Borger <tborger@classy.org>",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "terser": "^3.8.2"
+  },
+  "scripts": {
+    "build": "rm -rf lib && babel src/PairedFrame.js --out-dir lib && terser lib/PairedFrame.js --compact --mangle --output lib/PairedFrame.min.js"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ]
+  }
+}
