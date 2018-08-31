@@ -9,7 +9,6 @@ class PairedFrame {
     resizeElement = null,
     sendHeight = false,
     sendHistory = false,
-    targetIframe = null,
     targetOrigin = null,
     targetWindow = null
   }) {
@@ -46,9 +45,6 @@ class PairedFrame {
 
       // Boolean; if true, pathname will be broadcast to counterpart
       sendHistory,
-
-      // HTMLIframeElement; reference to the iframe that loads the counterpart
-      targetIframe,
 
       // String; counterpart origin
       targetOrigin,
@@ -268,23 +264,11 @@ class PairedFrame {
    * ------------------------------------------------------------------------ */
 
   onReady(cb) {
-    const documentReady = new Promise(res => {
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', res);
-      } else {
-        res();
-      }
-    });
-    const iframeReady = new Promise(res => {
-      if (this.config.targetIframe) {
-        this.config.targetIframe.addEventListener('load', res);
-      } else {
-        res();
-      }
-    });
-    Promise.all([documentReady, iframeReady]).then(() => {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', cb);
+    } else {
       cb();
-    });
+    }
   }
 
   debug(action, eventName, data) {
