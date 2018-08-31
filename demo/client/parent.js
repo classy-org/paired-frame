@@ -33,6 +33,7 @@ class App extends React.Component {
     };
     this.iframe = React.createRef();
     this.iframeWrapper = React.createRef();
+    this.resolveCurrentModal = null;
   }
 
   toggleBorder () {
@@ -54,13 +55,16 @@ class App extends React.Component {
       modalBody: body,
       modalButtons: buttons
     });
+    return new Promise(resolve => {
+      this.resolveCurrentModal = resolve;
+    });
   }
 
   modalResponse (result) {
     this.setState({
       modalDisplay: 'none'
     });
-    this.childFrame.send('dialog-closed', { result });
+    this.resolveCurrentModal(result);
   }
 
   async componentDidMount () {
@@ -78,7 +82,7 @@ class App extends React.Component {
       targetWindow: this.iframe.current.contentWindow,
     });
     this.childFrame.once('ready', this.showIframe.bind(this));
-    this.childFrame.on('dialog-opened', this.openModal.bind(this));
+    this.childFrame.onDialog(this.openModal.bind(this));
   }
 
   render () {

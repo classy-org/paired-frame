@@ -13,13 +13,12 @@
     "@babel/preset-env": "^7.0.0",
     "@babel/preset-react": "^7.0.0",
     "express": "^4.16.3",
-    "nodemon": "^1.18.4",
     "terser": "^3.8.2"
   },
   "scripts": {
     "build": "rm -rf lib && babel src/PairedFrame.js --out-dir lib && terser lib/PairedFrame.js --compact --mangle --output lib/PairedFrame.min.js",
     "build-demo": "rm -rf demo/public && babel demo/client --out-dir demo/public --presets @babel/env,@babel/react && cp demo/client/style.css demo/public",
-    "demo": "nodemon demo/index.js"
+    "demo": "node demo/index.js"
   },
   "babel": {
     "presets": [

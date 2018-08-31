@@ -63,6 +63,9 @@ class PairedFrame {
     // Registry of raw event callbacks
     this.callbacks = new WeakMap();
 
+    // Registry of pending dialog results
+    this.dialogs = {};
+
     // Boolean; if true, frame will adjust height in upcoming animation frame
     this.hasPendingHeightUpdate = false;
 
@@ -77,6 +80,9 @@ class PairedFrame {
 
     // ScrollHeight of counterpart
     this.remoteHeight = 0;
+
+    // Incrementor to create unique ids
+    this.uniqueId = 0;
 
     addEventListener('message', e => this.receive(e));
     this.onReady(() => {
@@ -152,30 +158,27 @@ class PairedFrame {
   }
 
   /* ------------------------------------------------------------------------ *
-   * Helpers
+   * Dialogs
    * ------------------------------------------------------------------------ */
 
-  notify(eventName, data) {
-    return this.send(eventName, data);
-  }
-
-  dialog(data) {
-    if (this.inDialog) return;
-    this.inDialog = true;
-    return new Promise(resolve => {
-      this.once('dialog-closed', ({ result }) => {
-        this.inDialog = false;
-        resolve(result);
-      });
-      this.send('dialog-opened', data);
-    });
+  dialog(config) {
+    const id = `${location.hostname}:${++this.uniqueId}`;
+    this.send('dialog-opened', { id, config });
+    return new Promise(resolve => (this.dialogs[id] = resolve));
   }
 
   onDialog(cb) {
-    this.on('dialog-opened', data => {
-      Promise.resolve(cb(data)).then(() => {
-        this.send('dialog-closed', { result });
-      });
+    this.on('dialog-opened', ({ id, config }) => {
+      Promise.resolve(cb(config)).then(result =>
+        this.send('dialog-closed', { id, result })
+      );
+    });
+  }
+
+  resolveDialogs() {
+    this.on('dialog-closed', ({ id, result }) => {
+      this.dialogs[id](result);
+      delete this.dialogs[id];
     });
   }
 
@@ -315,6 +318,7 @@ class PairedFrame {
     this.send('ping');
     this.emit('ready');
     this.heartbeat();
+    this.resolveDialogs();
     if (this.config.sendHeight) this.sendHeight();
     if (this.config.sendHistory) this.sendHistory();
     if (this.config.autoResize) this.autoResize();

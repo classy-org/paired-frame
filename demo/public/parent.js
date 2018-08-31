@@ -68,6 +68,7 @@ function (_React$Component) {
     };
     _this.iframe = React.createRef();
     _this.iframeWrapper = React.createRef();
+    _this.resolveCurrentModal = null;
     return _this;
   }
 
@@ -90,6 +91,8 @@ function (_React$Component) {
   }, {
     key: "openModal",
     value: function openModal(_ref) {
+      var _this2 = this;
+
       var title = _ref.title,
           body = _ref.body,
           buttons = _ref.buttons;
@@ -99,6 +102,9 @@ function (_React$Component) {
         modalBody: body,
         modalButtons: buttons
       });
+      return new Promise(function (resolve) {
+        _this2.resolveCurrentModal = resolve;
+      });
     }
   }, {
     key: "modalResponse",
@@ -106,9 +112,7 @@ function (_React$Component) {
       this.setState({
         modalDisplay: 'none'
       });
-      this.childFrame.send('dialog-closed', {
-        result: result
-      });
+      this.resolveCurrentModal(result);
     }
   }, {
     key: "componentDidMount",
@@ -137,7 +141,7 @@ function (_React$Component) {
                   targetWindow: this.iframe.current.contentWindow
                 });
                 this.childFrame.once('ready', this.showIframe.bind(this));
-                this.childFrame.on('dialog-opened', this.openModal.bind(this));
+                this.childFrame.onDialog(this.openModal.bind(this));
 
               case 5:
               case "end":
@@ -154,7 +158,7 @@ function (_React$Component) {
   }, {
     key: "render",
     value: function render() {
-      var _this2 = this;
+      var _this3 = this;
 
       return React.createElement(BrowserRouter, null, React.createElement("div", null, React.createElement("div", {
         class: "container"
@@ -258,7 +262,7 @@ function (_React$Component) {
         type: "button",
         class: "modal-close",
         onClick: function onClick(e) {
-          return _this2.modalResponse(false);
+          return _this3.modalResponse(false);
         }
       }, "\u2715"), React.createElement("h3", null, this.state.modalTitle), React.createElement("p", null, this.state.modalBody), React.createElement("div", {
         class: "modal-buttons"
@@ -270,7 +274,7 @@ function (_React$Component) {
           type: "button",
           className: "button-".concat(type),
           onClick: function onClick(e) {
-            return _this2.modalResponse(value);
+            return _this3.modalResponse(value);
           }
         }, text);
       })))))));
