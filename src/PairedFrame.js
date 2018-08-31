@@ -1,36 +1,31 @@
 'use strict';
 
 class PairedFrame {
-
-  constructor ({
-    autoNavigate  = false,
-    autoResize    = false,
-    debug         = false,
-    mapPath       = null,
+  constructor({
+    autoNavigate = false,
+    autoResize = false,
+    debug = false,
+    mapPath = null,
     resizeElement = null,
-    sendHeight    = false,
-    sendHistory   = false,
-    targetIframe  = null,
-    targetOrigin  = null,
-    targetWindow  = null
+    sendHeight = false,
+    sendHistory = false,
+    targetIframe = null,
+    targetOrigin = null,
+    targetWindow = null
   }) {
-
     if (!targetOrigin || !targetWindow) {
       throw new Error(
-        'Failed to instantiate PairedFrame: config must include a ' +
-        'targetOrigin and targetWindow.'
+        'Failed to instantiate PairedFrame: config must include a targetOrigin and targetWindow.'
       );
     }
 
     if (autoResize && !resizeElement) {
       throw new Error(
-        'Failed to instantiate PairedFrame: config must include a ' +
-        'resizeElement when autoResize is true.'
+        'Failed to instantiate PairedFrame: config must include a resizeElement when autoResize is true.'
       );
     }
 
     this.config = Object.freeze({
-
       // Boolean; if true, will match counterpart's pathname
       autoNavigate,
 
@@ -60,7 +55,6 @@ class PairedFrame {
 
       // Window; reference to counterpart contentWindow
       targetWindow
-
     });
 
     // Registry of wrapped event callbacks
@@ -84,31 +78,30 @@ class PairedFrame {
     // ScrollHeight of counterpart
     this.remoteHeight = 0;
 
-    addEventListener('message', (e) => this.receive(e));
+    addEventListener('message', e => this.receive(e));
     this.onReady(() => {
       this.once('ping', this.init);
       this.send('ping');
     });
   }
 
-
   /* ------------------------------------------------------------------------ *
    * EventEmitter
    * ------------------------------------------------------------------------ */
 
-  listeners (eventName) {
+  listeners(eventName) {
     return (this.registry[eventName] || []).map(cb => this.callbacks.get(cb));
   }
 
-  listenerCount (eventName) {
+  listenerCount(eventName) {
     return (this.registry[eventName] || []).length;
   }
 
-  eventNames () {
+  eventNames() {
     return Object.keys(this.registry);
   }
 
-  on (eventName, cb) {
+  on(eventName, cb) {
     const listeners = this.registry[eventName] || [];
     listeners.push(cb);
     this.registry[eventName] = listeners;
@@ -116,7 +109,7 @@ class PairedFrame {
     return this;
   }
 
-  once (eventName, cb) {
+  once(eventName, cb) {
     const wrapped = (...args) => {
       this.off(eventName, wrapped);
       cb.call(this, ...args);
@@ -125,7 +118,7 @@ class PairedFrame {
     return this.on(eventName, wrapped);
   }
 
-  off (eventName, cb) {
+  off(eventName, cb) {
     if (!this.registry[eventName]) return this;
     const idx = this.registry[eventName].findIndex(el => el === cb);
     if (idx === -1) return this;
@@ -133,45 +126,43 @@ class PairedFrame {
     return this;
   }
 
-  emit (eventName, data) {
+  emit(eventName, data) {
     // Grab count first in case callbacks register more listeners
     const count = this.listenerCount(eventName);
     (this.registry[eventName] || []).forEach(cb => cb.call(this, data));
     return Boolean(count);
   }
 
-
   /* ------------------------------------------------------------------------ *
    * PostMessages
    * ------------------------------------------------------------------------ */
 
-  send (eventName, data) {
+  send(eventName, data) {
     const { debug, targetOrigin, targetWindow } = this.config;
     targetWindow.postMessage({ name: eventName, data }, targetOrigin);
     this.debug('postmessage_sent', eventName, data);
     return true;
   }
 
-  receive ({ data: { name: eventName, data }, origin, source }) {
+  receive({ data: { name: eventName, data }, origin, source }) {
     const { debug, targetOrigin, targetWindow } = this.config;
     if (origin !== targetOrigin) return;
     this.debug('postmessage_received', eventName, data);
     return this.emit(eventName, data);
   }
 
-
   /* ------------------------------------------------------------------------ *
    * Helpers
    * ------------------------------------------------------------------------ */
 
-  notify (eventName, data) {
+  notify(eventName, data) {
     return this.send(eventName, data);
   }
 
-  dialog (data) {
+  dialog(data) {
     if (this.inDialog) return;
     this.inDialog = true;
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.once('dialog-closed', ({ result }) => {
         this.inDialog = false;
         resolve(result);
@@ -180,20 +171,19 @@ class PairedFrame {
     });
   }
 
-  onDialog (cb) {
-    this.on('dialog-opened', (data) => {
+  onDialog(cb) {
+    this.on('dialog-opened', data => {
       Promise.resolve(cb(data)).then(() => {
         this.send('dialog-closed', { result });
       });
     });
   }
 
-
   /* ------------------------------------------------------------------------ *
    * Synchronization
    * ------------------------------------------------------------------------ */
 
-  heartbeat () {
+  heartbeat() {
     setInterval(() => this.send('heartbeat'), 1000);
     const panic = () => {
       this.emit('connection-lost');
@@ -206,7 +196,7 @@ class PairedFrame {
     this.on('heartbeat', checkPulse);
   }
 
-  sendHeight () {
+  sendHeight() {
     const measureHeight = () => {
       const height = Math.min(
         document.body.scrollHeight,
@@ -217,25 +207,25 @@ class PairedFrame {
         this.send('resize', { height });
       }
       requestAnimationFrame(measureHeight);
-    }
+    };
     measureHeight();
   }
 
-  autoResize () {
+  autoResize() {
     const updateHeight = () => {
       if (this.localHeight !== this.remoteHeight) {
         this.config.resizeElement.style.height = `${this.remoteHeight}px`;
         this.localHeight = this.remoteHeight;
       }
       requestAnimationFrame(updateHeight);
-    }
+    };
     this.on('resize', ({ height }) => {
       this.remoteHeight = height;
     });
     updateHeight();
   }
 
-  sendHistory () {
+  sendHistory() {
     const checkPath = () => {
       const path = document.location.pathname;
       if (path !== this.localPath) {
@@ -243,11 +233,11 @@ class PairedFrame {
         this.send('navigate', { path });
       }
       requestAnimationFrame(checkPath);
-    }
+    };
     checkPath();
   }
 
-  autoNavigate () {
+  autoNavigate() {
     const { mapPath } = this.config;
     this.on('navigate', ({ path }) => {
       this.remotePath = path;
@@ -259,7 +249,7 @@ class PairedFrame {
       if (normalizedPath === document.location.pathname) return;
       history.replaceState(null, '', normalizedPath);
       let popstateEvent;
-      if (typeof(Event) === 'function') {
+      if (typeof Event === 'function') {
         popstateEvent = new Event('popstate');
       } else {
         popstateEvent = document.createEvent('Event');
@@ -270,20 +260,19 @@ class PairedFrame {
     });
   }
 
-
   /* ------------------------------------------------------------------------ *
    * Utils
    * ------------------------------------------------------------------------ */
 
-  onReady (cb) {
-    const documentReady = new Promise((res) => {
+  onReady(cb) {
+    const documentReady = new Promise(res => {
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', res);
       } else {
         res();
       }
     });
-    const iframeReady = new Promise((res) => {
+    const iframeReady = new Promise(res => {
       if (this.config.targetIframe) {
         this.config.targetIframe.addEventListener('load', res);
       } else {
@@ -295,26 +284,31 @@ class PairedFrame {
     });
   }
 
-  debug (action, eventName, data) {
+  debug(action, eventName, data) {
     if (!this.config.debug) return;
-    console.debug(JSON.stringify({
-      '[host]': location.hostname,
-      '[action]': action,
-      name: eventName,
-      data
-    }, null, 2));
+    console.debug(
+      JSON.stringify(
+        {
+          '[host]': location.hostname,
+          '[action]': action,
+          name: eventName,
+          data
+        },
+        null,
+        2
+      )
+    );
   }
 
-  warn (msg) {
+  warn(msg) {
     console.warn(`[PairedFrame] ${msg}`);
   }
-
 
   /* ------------------------------------------------------------------------ *
    * Init
    * ------------------------------------------------------------------------ */
 
-  init () {
+  init() {
     // Both frames ultimately send both a "marco" ping (on startup) and a "polo"
     // ping (in response to the first ping they receive from the counterpart).
     // The final "polo" ping is ignored by whichever frame initialized first.
