@@ -23,12 +23,12 @@ angular
         resolve: {
           parentFrame: function ($rootScope) {
             $rootScope.parentFrame = new PairedFrame({
-              mapPath: p => p.replace(/parent/g, 'child'),
-              sendHistory: true,
               autoNavigate: true,
               sendHeight: true,
+              sendHistory: true,
+              targetOrigin: 'http://parent.loc:3000',
               targetWindow: window.parent,
-              targetOrigin: 'http://parent.loc:3000'
+              translatePath: p => p.replace(/parent/g, 'child')
             });
           }
         }

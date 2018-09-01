@@ -4,12 +4,12 @@ export default class PairedFrame {
     autoNavigate = false,
     autoResize = false,
     debug = false,
-    mapPath = null,
     resizeElement = null,
     sendHeight = false,
     sendHistory = false,
     targetOrigin = null,
-    targetWindow = null
+    targetWindow = null,
+    translatePath = null
   }) {
 
     if (!targetOrigin || !targetWindow) {
@@ -25,32 +25,15 @@ export default class PairedFrame {
     }
 
     this.config = Object.freeze({
-      // Boolean; if true, will match counterpart's pathname
       autoNavigate,
-
-      // Boolean; if true, will match counterpart's scrollHeight
       autoResize,
-
-      // Boolean; if true, events will be logged to console
       debug,
-
-      // Function; converts counterpart pathname to local pathname
-      mapPath,
-
-      // HTMLElement; reference to wrapper element around counterpart iframe
       resizeElement,
-
-      // Boolean; if true, scrollHeight will be broadcast to counterpart
       sendHeight,
-
-      // Boolean; if true, pathname will be broadcast to counterpart
       sendHistory,
-
-      // String; counterpart origin
       targetOrigin,
-
-      // Window; reference to counterpart contentWindow
-      targetWindow
+      targetWindow,
+      translatePath
     });
 
     // Registry of wrapped event callbacks
@@ -82,8 +65,8 @@ export default class PairedFrame {
 
     addEventListener('message', e => this.receive(e));
     this.onReady(() => {
-      this.once('ping', this.init);
-      this.send('ping');
+      this.once('hello', this.init);
+      this.send('hello');
     });
   }
 
@@ -241,10 +224,10 @@ export default class PairedFrame {
   }
 
   autoNavigate() {
-    const { mapPath } = this.config;
+    const { translatePath } = this.config;
     this.on('navigate', ({ path }) => {
       this.remotePath = path;
-      const normalizedPath = mapPath ? mapPath(path) : path;
+      const normalizedPath = translatePath ? translatePath(path) : path;
       if (!normalizedPath) {
         this.warn('Failed to map remote path to local; aborting navigation.');
         return;
@@ -302,10 +285,11 @@ export default class PairedFrame {
    * ------------------------------------------------------------------------ */
 
   init() {
-    // Both frames ultimately send both a "marco" ping (on startup) and a "polo"
-    // ping (in response to the first ping they receive from the counterpart).
-    // The final "polo" ping is ignored by whichever frame initialized first.
-    this.send('ping');
+    // Both frames ultimately send both an initial "hello" (on startup) and a
+    // return "hello" (in response to the first hello they receive from the
+    // counterpart). The final "hello" is ignored by whichever frame
+    // initialized first.
+    this.send('hello');
     this.emit('ready');
     this.heartbeat();
     this.resolveDialogs();

@@ -14,14 +14,14 @@
       resolve: {
         parentFrame: function parentFrame($rootScope) {
           $rootScope.parentFrame = new PairedFrame({
-            mapPath: function mapPath(p) {
-              return p.replace(/parent/g, 'child');
-            },
-            sendHistory: true,
             autoNavigate: true,
             sendHeight: true,
+            sendHistory: true,
+            targetOrigin: 'http://parent.loc:3000',
             targetWindow: window.parent,
-            targetOrigin: 'http://parent.loc:3000'
+            translatePath: function translatePath(p) {
+              return p.replace(/parent/g, 'child');
+            }
           });
         }
       }

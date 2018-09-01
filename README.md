@@ -39,8 +39,8 @@ parent.on('heartbeat', console.log);
 parent.emit('some-event-name', someEventData);
 ```
 
-You can also send arbitrary messages to your counterpart, which will be emitted
-as events there.
+You can also send arbitrary messages to the counterpart frame, which will be
+emitted as events there.
 
 ```
 parent.send('some-event-name', someEventData);
@@ -60,15 +60,19 @@ The PairedFrame constructor accepts a dictionary of options:
 
 ### targetOrigin
 
-**Required.** The origin of the frame being targeted, including protocol,
-hostname, and port (if different than the default expected for the protocol).
-Only messages hailing from a counterpart at this origin will be trusted.
+_Required_
+
+The origin of the frame being targeted, including protocol, hostname, and port
+(if different than the default expected for the protocol). Only messages
+hailing from a counterpart at this origin will be trusted.
 
 ### targetWindow
 
-**Required.** A reference to the counterpart's window. When connecting from a
-host frame to an iframe, this is the iframe element's `contentWindow`. When
-connecting from an iframe to its host, this is `window.parent`.
+_Required_
+
+A reference to the counterpart's window. When connecting from a host frame to
+an iframe, this is the iframe element's `contentWindow`. When connecting from
+an iframe to its host, this is `window.parent`.
 
 ### sendHeight
 
@@ -84,17 +88,16 @@ the **parent** frame to enable automatic height syncing.
 
 ### resizeElement
 
-**Required if autoResize is true.** A reference to the element that should be
-resized to match the counterpart's scrollHeight. For best performance, this
-should be a wrapper div around the iframe with overflow set to "hidden". The
-iframe itself should have a static height large enough to accommodate the
-maximum height of its content.
+_Required if autoResize is true_
+
+A reference to the element that should be resized to match the counterpart's
+scrollHeight. For best performance, this should be a wrapper div around the
+iframe with overflow set to "hidden". The iframe itself should have a static
+height large enough to accommodate the maximum height of its content.
 
 If your iframe's maximum content height is not predictable (for example, if it
 has infinitely scrolling content), you can also pass a reference to the iframe
-element itself. This will work, but may degrade performance during animations
-as the browser needs to layout the content of the entire iframe whenever its
-scrollHeight changes.
+element itself. This will work, but may degrade performance during animations.
 
 ### sendHistory
 
@@ -110,7 +113,7 @@ a synthetic `popstate` event (which typically represents browser navigation) is
 fired to trigger any active routing library to examine the new pathname and, if
 necessary, render a new state.
 
-### mapPath
+### translatePath
 
 Function. If provided, will be used to translate the counterpart's new pathname
 into the equivalent local pathname. This allows the parent and child frames to
@@ -123,6 +126,21 @@ sent or received.
 
 
 ## Methods
+
+### dialog(config)
+
+Notifies the counterpart to initiate some kind of interactive dialog. Returns a
+promise that will be resolved with the result of that dialog.
+
+PairedFrame only manages communication of the dialog state; it is up to the
+user to implement the actual modal, toast message, etc. To that end, `config`
+can be structured however you like.
+
+### onDialog(callback)
+
+A special handler for accepting and responding to dialog requests. `callback`
+will receive the dialog `config` as its first argument and should return a
+promise that resolves with the result of the interaction.
 
 ### on(eventName, callback)
 
@@ -161,25 +179,10 @@ Returns an array of callbacks currently registered for the given event.
 
 Returns the number of callbacks currently registered for the given event.
 
-### dialog(config)
-
-Notifies the counterpart to initiate some kind of interactive dialog. Returns a
-promise that will be resolved with the result of that dialog.
-
-PairedFrame only manages communication of the dialog state; it is up to the
-user to implement the actual modal, toast message, etc. To that end, `config`
-can be structured however you like.
-
-### onDialog(callback)
-
-A special handler for accepting and responding to dialog requests. `callback`
-will receive the dialog `config` as its first argument and should return a
-promise that resolves with the result of the interaction.
-
 
 ## Built-in events
 
-* **ping:** Used to set up initial connection.
+* **hello:** Used to set up initial connection.
 * **ready:** Indicates that the counterpart is ready to communicate.
 * **heartbeat:** Sent every second by each frame.
 * **resize:** Indicates the counterpart's scrollHeight has changed.

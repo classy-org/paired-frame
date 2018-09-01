@@ -32,8 +32,6 @@ function () {
         autoResize = _ref$autoResize === void 0 ? false : _ref$autoResize,
         _ref$debug = _ref.debug,
         debug = _ref$debug === void 0 ? false : _ref$debug,
-        _ref$mapPath = _ref.mapPath,
-        mapPath = _ref$mapPath === void 0 ? null : _ref$mapPath,
         _ref$resizeElement = _ref.resizeElement,
         resizeElement = _ref$resizeElement === void 0 ? null : _ref$resizeElement,
         _ref$sendHeight = _ref.sendHeight,
@@ -43,7 +41,9 @@ function () {
         _ref$targetOrigin = _ref.targetOrigin,
         targetOrigin = _ref$targetOrigin === void 0 ? null : _ref$targetOrigin,
         _ref$targetWindow = _ref.targetWindow,
-        targetWindow = _ref$targetWindow === void 0 ? null : _ref$targetWindow;
+        targetWindow = _ref$targetWindow === void 0 ? null : _ref$targetWindow,
+        _ref$translatePath = _ref.translatePath,
+        translatePath = _ref$translatePath === void 0 ? null : _ref$translatePath;
 
     _classCallCheck(this, PairedFrame);
 
@@ -56,24 +56,15 @@ function () {
     }
 
     this.config = Object.freeze({
-      // Boolean; if true, will match counterpart's pathname
       autoNavigate: autoNavigate,
-      // Boolean; if true, will match counterpart's scrollHeight
       autoResize: autoResize,
-      // Boolean; if true, events will be logged to console
       debug: debug,
-      // Function; converts counterpart pathname to local pathname
-      mapPath: mapPath,
-      // HTMLElement; reference to wrapper element around counterpart iframe
       resizeElement: resizeElement,
-      // Boolean; if true, scrollHeight will be broadcast to counterpart
       sendHeight: sendHeight,
-      // Boolean; if true, pathname will be broadcast to counterpart
       sendHistory: sendHistory,
-      // String; counterpart origin
       targetOrigin: targetOrigin,
-      // Window; reference to counterpart contentWindow
-      targetWindow: targetWindow
+      targetWindow: targetWindow,
+      translatePath: translatePath
     }); // Registry of wrapped event callbacks
 
     this.registry = {}; // Registry of raw event callbacks
@@ -97,9 +88,9 @@ function () {
       return _this.receive(e);
     });
     this.onReady(function () {
-      _this.once('ping', _this.init);
+      _this.once('hello', _this.init);
 
-      _this.send('ping');
+      _this.send('hello');
     });
   }
   /* ------------------------------------------------------------------------ *
@@ -353,11 +344,11 @@ function () {
     value: function autoNavigate() {
       var _this12 = this;
 
-      var mapPath = this.config.mapPath;
+      var translatePath = this.config.translatePath;
       this.on('navigate', function (_ref6) {
         var path = _ref6.path;
         _this12.remotePath = path;
-        var normalizedPath = mapPath ? mapPath(path) : path;
+        var normalizedPath = translatePath ? translatePath(path) : path;
 
         if (!normalizedPath) {
           _this12.warn('Failed to map remote path to local; aborting navigation.');
@@ -416,10 +407,11 @@ function () {
   }, {
     key: "init",
     value: function init() {
-      // Both frames ultimately send both a "marco" ping (on startup) and a "polo"
-      // ping (in response to the first ping they receive from the counterpart).
-      // The final "polo" ping is ignored by whichever frame initialized first.
-      this.send('ping');
+      // Both frames ultimately send both an initial "hello" (on startup) and a
+      // return "hello" (in response to the first hello they receive from the
+      // counterpart). The final "hello" is ignored by whichever frame
+      // initialized first.
+      this.send('hello');
       this.emit('ready');
       this.heartbeat();
       this.resolveDialogs();
