@@ -91,7 +91,7 @@ angular
   // Views
   .component('viewRoot', {
     template: `
-      <h1>Child Frame</h1>
+      <h2>Child Frame</h2>
 
       <div class="route-info">
         <span class="route-label">window.location.href:</span>

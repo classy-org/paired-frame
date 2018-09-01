@@ -1,6 +1,5 @@
-'use strict';
+export default class PairedFrame {
 
-class PairedFrame {
   constructor({
     autoNavigate = false,
     autoResize = false,
@@ -12,6 +11,7 @@ class PairedFrame {
     targetOrigin = null,
     targetWindow = null
   }) {
+
     if (!targetOrigin || !targetWindow) {
       throw new Error(
         'Failed to instantiate PairedFrame: config must include a targetOrigin and targetWindow.'
@@ -87,6 +87,7 @@ class PairedFrame {
     });
   }
 
+
   /* ------------------------------------------------------------------------ *
    * EventEmitter
    * ------------------------------------------------------------------------ */
@@ -135,6 +136,7 @@ class PairedFrame {
     return Boolean(count);
   }
 
+
   /* ------------------------------------------------------------------------ *
    * PostMessages
    * ------------------------------------------------------------------------ */
@@ -152,6 +154,7 @@ class PairedFrame {
     this.debug('postmessage_received', eventName, data);
     return this.emit(eventName, data);
   }
+
 
   /* ------------------------------------------------------------------------ *
    * Dialogs
@@ -177,6 +180,7 @@ class PairedFrame {
       delete this.dialogs[id];
     });
   }
+
 
   /* ------------------------------------------------------------------------ *
    * Synchronization
@@ -259,6 +263,7 @@ class PairedFrame {
     });
   }
 
+
   /* ------------------------------------------------------------------------ *
    * Utils
    * ------------------------------------------------------------------------ */
@@ -291,6 +296,7 @@ class PairedFrame {
     console.warn(`[PairedFrame] ${msg}`);
   }
 
+
   /* ------------------------------------------------------------------------ *
    * Init
    * ------------------------------------------------------------------------ */
@@ -308,4 +314,4 @@ class PairedFrame {
     if (this.config.autoResize) this.autoResize();
     if (this.config.autoNavigate) this.autoNavigate();
   }
-}
+};

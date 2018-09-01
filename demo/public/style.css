@@ -24,6 +24,11 @@ nav {
 
 /* Layout */
 
+.title {
+  padding:25px;
+  border-bottom:1px solid #ccc;
+}
+
 .container {
   border:1px solid transparent;
   display:block;

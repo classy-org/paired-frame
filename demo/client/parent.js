@@ -89,13 +89,15 @@ class App extends React.Component {
     return (
       <BrowserRouter>
         <div>
-
           <div class="container">
+
+            <h1 class="title">PairedFrame.js</h1>
+
             <div class="grid">
 
               <div class="sidebar">
 
-                <h1>Parent Frame</h1>
+                <h2>Parent Frame</h2>
 
                 <div class="route-info">
                   <span class="route-label">window.location.href:</span>
@@ -164,7 +166,6 @@ class App extends React.Component {
               </div>
             </div>
           </div>
-
         </div>
       </BrowserRouter>
     );

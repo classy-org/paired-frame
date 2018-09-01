@@ -6,7 +6,7 @@ const childView = require('./src/child.view');
 
 const app = express();
 
-app.use('/static', express.static('lib'));
+app.use('/static', express.static('dist'));
 
 app.use('/static', express.static('demo/public'));
 
