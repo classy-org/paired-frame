@@ -213,7 +213,7 @@ export default class PairedFrame {
 
   sendHistory() {
     const checkPath = () => {
-      const path = document.location.pathname;
+      const path = location.pathname;
       if (path !== this.localPath) {
         this.localPath = path;
         this.send('navigate', { path });
