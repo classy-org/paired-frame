@@ -228,11 +228,7 @@ export default class PairedFrame {
     this.on('navigate', ({ path }) => {
       this.remotePath = path;
       const normalizedPath = translatePath ? translatePath(path) : path;
-      if (!normalizedPath) {
-        this.warn('Failed to map remote path to local; aborting navigation.');
-        return;
-      }
-      if (normalizedPath === document.location.pathname) return;
+      if (!normalizedPath || normalizedPath === location.pathname) return;
       history.replaceState(null, '', normalizedPath);
       let popstateEvent;
       if (typeof Event === 'function') {
@@ -273,10 +269,6 @@ export default class PairedFrame {
         2
       )
     );
-  }
-
-  warn(msg) {
-    console.warn(`[PairedFrame] ${msg}`);
   }
 
 

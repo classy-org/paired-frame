@@ -351,14 +351,7 @@ function () {
         var path = _ref6.path;
         _this12.remotePath = path;
         var normalizedPath = translatePath ? translatePath(path) : path;
-
-        if (!normalizedPath) {
-          _this12.warn('Failed to map remote path to local; aborting navigation.');
-
-          return;
-        }
-
-        if (normalizedPath === document.location.pathname) return;
+        if (!normalizedPath || normalizedPath === location.pathname) return;
         history.replaceState(null, '', normalizedPath);
         var popstateEvent;
 
