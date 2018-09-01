@@ -1,6 +1,6 @@
 {
   "name": "paired-frame",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Helper library for cross-frame communication",
   "module": "./dist/PairedFrame.ejs.js",
   "main": "./dist/PairedFrame.cjs.js",
