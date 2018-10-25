@@ -4,6 +4,7 @@ export default class PairedFrame {
     autoNavigate = false,
     autoResize = false,
     debug = false,
+    providePath = null,
     resizeElement = null,
     sendHeight = false,
     sendHistory = false,
@@ -28,6 +29,7 @@ export default class PairedFrame {
       autoNavigate,
       autoResize,
       debug,
+      providePath,
       resizeElement,
       sendHeight,
       sendHistory,
@@ -218,11 +220,13 @@ export default class PairedFrame {
   }
 
   sendHistory() {
+    const { providePath } = this.config;
     const checkPath = () => {
       const path = location.pathname;
       if (path !== this.localPath) {
+        const requestedPath = providePath ? providePath(path) : null;
         this.localPath = path;
-        this.send('navigate', { path });
+        this.send('navigate', { path, requestedPath });
       }
       requestAnimationFrame(checkPath);
     };
@@ -231,9 +235,10 @@ export default class PairedFrame {
 
   autoNavigate() {
     const { translatePath } = this.config;
-    this.on('navigate', ({ path }) => {
+    this.on('navigate', ({ path, requestedPath }) => {
       this.remotePath = path;
-      const normalizedPath = translatePath ? translatePath(path) : path;
+      const normalizedPath = translatePath ? translatePath(path, requestedPath)
+        : path;
       if (!normalizedPath || normalizedPath === location.pathname) return;
       history.replaceState(null, '', normalizedPath);
       let popstateEvent;

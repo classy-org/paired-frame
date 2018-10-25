@@ -48,6 +48,8 @@ function () {
         autoResize = _ref$autoResize === void 0 ? false : _ref$autoResize,
         _ref$debug = _ref.debug,
         debug = _ref$debug === void 0 ? false : _ref$debug,
+        _ref$providePath = _ref.providePath,
+        providePath = _ref$providePath === void 0 ? null : _ref$providePath,
         _ref$resizeElement = _ref.resizeElement,
         resizeElement = _ref$resizeElement === void 0 ? null : _ref$resizeElement,
         _ref$sendHeight = _ref.sendHeight,
@@ -75,6 +77,7 @@ function () {
       autoNavigate: autoNavigate,
       autoResize: autoResize,
       debug: debug,
+      providePath: providePath,
       resizeElement: resizeElement,
       sendHeight: sendHeight,
       sendHistory: sendHistory,
@@ -339,14 +342,18 @@ function () {
     value: function sendHistory() {
       var _this11 = this;
 
+      var providePath = this.config.providePath;
+
       var checkPath = function checkPath() {
         var path = location.pathname;
 
         if (path !== _this11.localPath) {
+          var requestedPath = providePath ? providePath(path) : null;
           _this11.localPath = path;
 
           _this11.send('navigate', {
-            path: path
+            path: path,
+            requestedPath: requestedPath
           });
         }
 
@@ -362,9 +369,10 @@ function () {
 
       var translatePath = this.config.translatePath;
       this.on('navigate', function (_ref6) {
-        var path = _ref6.path;
+        var path = _ref6.path,
+            requestedPath = _ref6.requestedPath;
         _this12.remotePath = path;
-        var normalizedPath = translatePath ? translatePath(path) : path;
+        var normalizedPath = translatePath ? translatePath(path, requestedPath) : path;
         if (!normalizedPath || normalizedPath === location.pathname) return;
         history.replaceState(null, '', normalizedPath);
         var popstateEvent;

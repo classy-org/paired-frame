@@ -28,7 +28,7 @@ angular
               sendHistory: true,
               targetOrigin: 'http://parent.loc:3000',
               targetWindow: window.parent,
-              translatePath: p => p.replace(/parent/g, 'child')
+              translatePath: (path, requestedPath) => requestedPath
             });
           }
         }

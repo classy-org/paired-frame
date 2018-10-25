@@ -19,8 +19,8 @@
             sendHistory: true,
             targetOrigin: 'http://parent.loc:3000',
             targetWindow: window.parent,
-            translatePath: function translatePath(p) {
-              return p.replace(/parent/g, 'child');
+            translatePath: function translatePath(path, requestedPath) {
+              return requestedPath;
             }
           });
         }

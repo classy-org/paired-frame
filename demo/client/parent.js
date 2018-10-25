@@ -74,12 +74,13 @@ class App extends React.Component {
       autoNavigate: true,
       autoResize: true,
       debug: true,
+      providePath: localPath => localPath.replace(/parent/g, 'child'),
       resizeElement: this.iframeWrapper.current,
       sendHistory: true,
       targetIframe: this.iframe.current,
       targetOrigin: 'http://child.loc:3000',
       targetWindow: this.iframe.current.contentWindow,
-      translatePath: p => p.replace(/child/g, 'parent')
+      translatePath: remotePath => remotePath.replace(/child/g, 'parent')
     });
     this.childFrame.once('ready', this.showIframe.bind(this));
     this.childFrame.onDialog(this.openModal.bind(this));

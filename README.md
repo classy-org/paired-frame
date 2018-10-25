@@ -115,9 +115,21 @@ necessary, render a new state.
 
 ### translatePath
 
-Function. If provided, will be used to translate the counterpart's new pathname
+`(remotePath, requestedPath) => localPath`
+
+Function. If provided, will be used to convert the counterpart's new pathname
 into the equivalent local pathname. This allows the parent and child frames to
 have uniquely named routes that can still be mapped to each other.
+
+### providePath
+
+`(localPath) => remotePath`
+
+Function. If provided, will be used to translate new local pathnames into the
+`requestedPath` argument that will be fed to the counterpart's translatePath.
+The counterpart may optionally defer to `requestedPath` rather than deriving a
+path from `remotePath`. This allows one frame to manage route syncing for both
+frames.
 
 ### debug
 

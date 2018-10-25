@@ -215,13 +215,16 @@
                     autoNavigate: true,
                     autoResize: true,
                     debug: true,
+                    providePath: function providePath(localPath) {
+                      return localPath.replace(/parent/g, 'child');
+                    },
                     resizeElement: this.iframeWrapper.current,
                     sendHistory: true,
                     targetIframe: this.iframe.current,
                     targetOrigin: 'http://child.loc:3000',
                     targetWindow: this.iframe.current.contentWindow,
-                    translatePath: function translatePath(p) {
-                      return p.replace(/child/g, 'parent');
+                    translatePath: function translatePath(remotePath) {
+                      return remotePath.replace(/child/g, 'parent');
                     }
                   });
                   this.childFrame.once('ready', this.showIframe.bind(this));
