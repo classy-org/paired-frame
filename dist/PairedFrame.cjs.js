@@ -99,10 +99,10 @@ function () {
 
     this.remoteHeight = 0; // Incrementor to create unique ids
 
-    this.uniqueId = 0;
-    addEventListener('message', function (e) {
-      return _this.receive(e);
-    });
+    this.uniqueId = 0; // Reference to bound receive method that may be removed later
+
+    this.boundReceiver = this.receive.bind(this);
+    addEventListener('message', this.boundReceiver);
     this.onReady(function () {
       _this.once('hello', _this.init);
 
@@ -403,6 +403,15 @@ function () {
         name: eventName,
         data: data
       }, null, 2));
+    }
+    /* ------------------------------------------------------------------------ *
+     * Destroy
+     * ------------------------------------------------------------------------ */
+
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      removeEventListener('message', this.boundReceiver);
     }
     /* ------------------------------------------------------------------------ *
      * Init

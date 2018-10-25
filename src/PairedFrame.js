@@ -63,7 +63,10 @@ export default class PairedFrame {
     // Incrementor to create unique ids
     this.uniqueId = 0;
 
-    addEventListener('message', e => this.receive(e));
+    // Reference to bound receive method that may be removed later
+    this.boundReceiver = this.receive.bind(this);
+
+    addEventListener('message', this.boundReceiver);
     this.onReady(() => {
       this.once('hello', this.init);
       this.send('hello');
@@ -272,6 +275,15 @@ export default class PairedFrame {
         2
       )
     );
+  }
+
+
+  /* ------------------------------------------------------------------------ *
+   * Destroy
+   * ------------------------------------------------------------------------ */
+
+  destroy() {
+    removeEventListener('message', this.boundReceiver);
   }
 
 
