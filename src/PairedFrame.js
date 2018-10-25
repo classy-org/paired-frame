@@ -254,11 +254,32 @@ export default class PairedFrame {
    * ------------------------------------------------------------------------ */
 
   onReady(cb) {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', cb);
-    } else {
-      cb();
-    }
+    const { targetOrigin, targetWindow } = this.config;
+    const localReady = new Promise((resolve) => {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', resolve);
+      } else {
+        resolve();
+      }
+    });
+    const remoteReady = new Promise((resolve) => {
+      if (targetOrigin === origin) {
+        resolve();
+      } else {
+        const intervalId = setInterval(() => {
+          try {
+            if (targetWindow.origin !== origin) {
+              resolve();
+              clearInterval(intervalId);
+            }
+          } catch (err) {
+            resolve();
+            clearInterval(intervalId);
+          }
+        }, 100);
+      }
+    });
+    Promise.all([ localReady, remoteReady ]).then(cb);
   }
 
   debug(action, eventName, data) {

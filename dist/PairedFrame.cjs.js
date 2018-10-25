@@ -387,11 +387,34 @@ function () {
   }, {
     key: "onReady",
     value: function onReady(cb) {
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', cb);
-      } else {
-        cb();
-      }
+      var _this$config3 = this.config,
+          targetOrigin = _this$config3.targetOrigin,
+          targetWindow = _this$config3.targetWindow;
+      var localReady = new Promise(function (resolve) {
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', resolve);
+        } else {
+          resolve();
+        }
+      });
+      var remoteReady = new Promise(function (resolve) {
+        if (targetOrigin === origin) {
+          resolve();
+        } else {
+          var intervalId = setInterval(function () {
+            try {
+              if (targetWindow.origin !== origin) {
+                resolve();
+                clearInterval(intervalId);
+              }
+            } catch (err) {
+              resolve();
+              clearInterval(intervalId);
+            }
+          }, 100);
+        }
+      });
+      Promise.all([localReady, remoteReady]).then(cb);
     }
   }, {
     key: "debug",
