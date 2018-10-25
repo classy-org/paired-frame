@@ -125,15 +125,18 @@ export default class PairedFrame {
    * ------------------------------------------------------------------------ */
 
   send(eventName, data) {
-    const { debug, targetOrigin, targetWindow } = this.config;
+    const { targetOrigin, targetWindow } = this.config;
     targetWindow.postMessage({ name: eventName, data }, targetOrigin);
     this.debug('postmessage_sent', eventName, data);
     return true;
   }
 
-  receive({ data: { name: eventName, data }, origin, source }) {
-    const { debug, targetOrigin, targetWindow } = this.config;
+  receive({ data: message, origin, source }) {
+    const { targetOrigin, targetWindow } = this.config;
     if (origin !== targetOrigin) return;
+    if (source !== targetWindow) return;
+    if (typeof message !== 'object' || !message.name) return;
+    const { name: eventName, data } = message;
     this.debug('postmessage_received', eventName, data);
     return this.emit(eventName, data);
   }

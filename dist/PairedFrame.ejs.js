@@ -1,3 +1,17 @@
+function _typeof(obj) {
+  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+    _typeof = function (obj) {
+      return typeof obj;
+    };
+  } else {
+    _typeof = function (obj) {
+      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    };
+  }
+
+  return _typeof(obj);
+}
+
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
@@ -175,7 +189,6 @@ function () {
     key: "send",
     value: function send(eventName, data) {
       var _this$config = this.config,
-          debug = _this$config.debug,
           targetOrigin = _this$config.targetOrigin,
           targetWindow = _this$config.targetWindow;
       targetWindow.postMessage({
@@ -188,16 +201,17 @@ function () {
   }, {
     key: "receive",
     value: function receive(_ref2) {
-      var _ref2$data = _ref2.data,
-          eventName = _ref2$data.name,
-          data = _ref2$data.data,
+      var message = _ref2.data,
           origin = _ref2.origin,
           source = _ref2.source;
       var _this$config2 = this.config,
-          debug = _this$config2.debug,
           targetOrigin = _this$config2.targetOrigin,
           targetWindow = _this$config2.targetWindow;
       if (origin !== targetOrigin) return;
+      if (source !== targetWindow) return;
+      if (_typeof(message) !== 'object' || !message.name) return;
+      var eventName = message.name,
+          data = message.data;
       this.debug('postmessage_received', eventName, data);
       return this.emit(eventName, data);
     }
@@ -324,7 +338,7 @@ function () {
       var _this11 = this;
 
       var checkPath = function checkPath() {
-        var path = document.location.pathname;
+        var path = location.pathname;
 
         if (path !== _this11.localPath) {
           _this11.localPath = path;
@@ -387,11 +401,6 @@ function () {
         name: eventName,
         data: data
       }, null, 2));
-    }
-  }, {
-    key: "warn",
-    value: function warn(msg) {
-      console.warn("[PairedFrame] ".concat(msg));
     }
     /* ------------------------------------------------------------------------ *
      * Init
