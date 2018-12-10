@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "dist/types",
+    "jsx": "react",
+    "lib": [
+      "DOM",
+      "ES2015"
+    ],
+    "module": "es6",
+    "noImplicitAny": true,
+    "outDir": "dist",
+    "removeComments": true,
+    "strictNullChecks": true,
+    "target": "es5"
+  },
+  "include": [
+    "src/PairedFrame.ts"
+  ]
+}

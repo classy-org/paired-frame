@@ -1,4 +1,56 @@
+interface PairedFrameOptions {
+  autoNavigate  : boolean,
+  autoResize    : boolean,
+  debug         : boolean,
+  providePath   : Function|null,
+  resizeElement : HTMLElement|null,
+  sendHeight    : boolean,
+  sendHistory   : boolean,
+  targetOrigin  : string,
+  targetWindow  : Window,
+  translatePath : Function|null
+}
+
+interface CallbackRegistry {
+  [propname:string]:Function[]
+}
+
+interface DialogRegistry {
+  [propname:string]:(result:any)=>void
+}
+
+interface ResizeMessage {
+  height:number
+}
+
+interface NavigateMessage {
+  path:string,
+  requestedPath:string|null
+}
+
+interface DialogOpenedMessage {
+  id:string,
+  config?:any
+}
+
+interface DialogClosedMessage {
+  id:string,
+  result?:any
+}
+
 export default class PairedFrame {
+  private config                 : PairedFrameOptions;
+  private registry               : CallbackRegistry
+  private callbacks              : WeakMap<Function,Function>
+  private dialogs                : DialogRegistry
+  private hasPendingHeightUpdate : boolean
+  private localPath              : string|null
+  private localHeight            : number
+  private remotePath             : string|null
+  private remoteHeight           : number
+  private uniqueId               : number
+  private boundReceiver          : EventListener
+  private pulseId                : number
 
   constructor({
     autoNavigate = false,
@@ -8,10 +60,10 @@ export default class PairedFrame {
     resizeElement = null,
     sendHeight = false,
     sendHistory = false,
-    targetOrigin = null,
-    targetWindow = null,
+    targetOrigin,
+    targetWindow,
     translatePath = null
-  }) {
+  }: PairedFrameOptions) {
 
     if (!targetOrigin || !targetWindow) {
       throw new Error(
@@ -80,19 +132,19 @@ export default class PairedFrame {
    * EventEmitter
    * ------------------------------------------------------------------------ */
 
-  listeners(eventName) {
+  public listeners(eventName: string) {
     return (this.registry[eventName] || []).map(cb => this.callbacks.get(cb));
   }
 
-  listenerCount(eventName) {
+  public listenerCount(eventName: string) {
     return (this.registry[eventName] || []).length;
   }
 
-  eventNames() {
+  public eventNames() {
     return Object.keys(this.registry);
   }
 
-  on(eventName, cb) {
+  public on(eventName: string, cb:(data?: Object) => void) {
     const listeners = this.registry[eventName] || [];
     listeners.push(cb);
     this.registry[eventName] = listeners;
@@ -100,16 +152,16 @@ export default class PairedFrame {
     return this;
   }
 
-  once(eventName, cb) {
-    const wrapped = (...args) => {
+  public once(eventName: string, cb:(data?: Object) => void) {
+    const wrapped = (data?: Object) => {
       this.off(eventName, wrapped);
-      cb.call(this, ...args);
+      cb.call(this, data);
     };
     this.callbacks.set(wrapped, cb);
     return this.on(eventName, wrapped);
   }
 
-  off(eventName, cb) {
+  public off(eventName: string, cb:(data?: Object) => void) {
     if (!this.registry[eventName]) return this;
     const idx = this.registry[eventName].findIndex(el => el === cb);
     if (idx === -1) return this;
@@ -117,7 +169,7 @@ export default class PairedFrame {
     return this;
   }
 
-  emit(eventName, data) {
+  public emit(eventName: string, data?: Object) {
     // Grab count first in case callbacks register more listeners
     const count = this.listenerCount(eventName);
     (this.registry[eventName] || []).forEach(cb => cb.call(this, data));
@@ -129,14 +181,14 @@ export default class PairedFrame {
    * PostMessages
    * ------------------------------------------------------------------------ */
 
-  send(eventName, data) {
+  public send(eventName: string, data?: Object) {
     const { targetOrigin, targetWindow } = this.config;
     targetWindow.postMessage({ name: eventName, data }, targetOrigin);
     this.debug('postmessage_sent', eventName, data);
     return true;
   }
 
-  receive({ data: message, origin, source }) {
+  private receive({ data: message, origin, source }: MessageEvent) {
     const { targetOrigin, targetWindow } = this.config;
     if (origin !== targetOrigin) return;
     if (source !== targetWindow) return;
@@ -151,22 +203,22 @@ export default class PairedFrame {
    * Dialogs
    * ------------------------------------------------------------------------ */
 
-  dialog(config) {
+  public dialog(config?:any) {
     const id = `${location.hostname}:${++this.uniqueId}`;
     this.send('dialog-opened', { id, config });
     return new Promise(resolve => (this.dialogs[id] = resolve));
   }
 
-  onDialog(cb) {
-    this.on('dialog-opened', ({ id, config }) => {
+  public onDialog(cb:(config:any)=>void) {
+    this.on('dialog-opened', ({ id, config }: DialogOpenedMessage) => {
       Promise.resolve(cb(config)).then(result =>
         this.send('dialog-closed', { id, result })
       );
     });
   }
 
-  resolveDialogs() {
-    this.on('dialog-closed', ({ id, result }) => {
+  private resolveDialogs() {
+    this.on('dialog-closed', ({ id, result }: DialogClosedMessage) => {
       this.dialogs[id](result);
       delete this.dialogs[id];
     });
@@ -177,20 +229,20 @@ export default class PairedFrame {
    * Synchronization
    * ------------------------------------------------------------------------ */
 
-  heartbeat() {
+  private heartbeat() {
     setInterval(() => this.send('heartbeat'), 1000);
     const panic = () => {
       this.emit('connection-lost');
       this.once('heartbeat', () => this.emit('connection-restored'));
     };
     const checkPulse = () => {
-      clearTimeout(this.panicId);
-      this.panicId = setTimeout(panic, 2000);
+      clearTimeout(this.pulseId);
+      this.pulseId = window.setTimeout(panic, 2000);
     };
     this.on('heartbeat', checkPulse);
   }
 
-  sendHeight() {
+  private sendHeight() {
     const measureHeight = () => {
       const height = Math.min(
         document.body.scrollHeight,
@@ -205,21 +257,21 @@ export default class PairedFrame {
     measureHeight();
   }
 
-  autoResize() {
+  private autoResize() {
     const updateHeight = () => {
-      if (this.localHeight !== this.remoteHeight) {
+      if (this.config.resizeElement && this.localHeight !== this.remoteHeight) {
         this.config.resizeElement.style.height = `${this.remoteHeight}px`;
         this.localHeight = this.remoteHeight;
       }
       requestAnimationFrame(updateHeight);
     };
-    this.on('resize', ({ height }) => {
+    this.on('resize', ({ height }: ResizeMessage) => {
       this.remoteHeight = height;
     });
     updateHeight();
   }
 
-  sendHistory() {
+  private sendHistory() {
     const { providePath } = this.config;
     const checkPath = () => {
       const path = location.pathname;
@@ -233,15 +285,15 @@ export default class PairedFrame {
     checkPath();
   }
 
-  autoNavigate() {
+  private autoNavigate() {
     const { translatePath } = this.config;
-    this.on('navigate', ({ path, requestedPath }) => {
+    this.on('navigate', ({ path, requestedPath }: NavigateMessage) => {
       this.remotePath = path;
       const normalizedPath = translatePath ? translatePath(path, requestedPath)
         : path;
       if (!normalizedPath || normalizedPath === location.pathname) return;
       history.replaceState(null, '', normalizedPath);
-      let popstateEvent;
+      let popstateEvent:any;
       if (typeof Event === 'function') {
         popstateEvent = new Event('popstate');
       } else {
@@ -258,7 +310,7 @@ export default class PairedFrame {
    * Utils
    * ------------------------------------------------------------------------ */
 
-  onReady(cb) {
+  private onReady(cb:()=>void) {
     const { targetOrigin, targetWindow } = this.config;
     const localReady = new Promise((resolve) => {
       if (document.readyState === 'loading') {
@@ -279,7 +331,7 @@ export default class PairedFrame {
             }
           } catch (err) {
             resolve();
-            clearInterval(intervalId);
+            clearInterval(intervalId)
           }
         }, 100);
       }
@@ -287,7 +339,7 @@ export default class PairedFrame {
     Promise.all([ localReady, remoteReady ]).then(cb);
   }
 
-  debug(action, eventName, data) {
+  public debug(action:string, eventName:string, data?:Object) {
     if (!this.config.debug) return;
     console.debug(
       JSON.stringify(
@@ -308,7 +360,7 @@ export default class PairedFrame {
    * Destroy
    * ------------------------------------------------------------------------ */
 
-  destroy() {
+  public destroy() {
     removeEventListener('message', this.boundReceiver);
   }
 
@@ -317,7 +369,7 @@ export default class PairedFrame {
    * Init
    * ------------------------------------------------------------------------ */
 
-  init() {
+  private init() {
     // Both frames ultimately send both an initial "hello" (on startup) and a
     // return "hello" (in response to the first hello they receive from the
     // counterpart). The final "hello" is ignored by whichever frame

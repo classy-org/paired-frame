@@ -238,9 +238,11 @@
           }, _callee, this);
         }));
 
-        return function componentDidMount() {
+        function componentDidMount() {
           return _componentDidMount.apply(this, arguments);
-        };
+        }
+
+        return componentDidMount;
       }()
     }, {
       key: "render",

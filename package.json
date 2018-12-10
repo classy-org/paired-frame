@@ -2,27 +2,31 @@
   "name": "paired-frame",
   "version": "1.1.0",
   "description": "Helper library for cross-frame communication",
-  "module": "./dist/PairedFrame.ejs.js",
-  "main": "./dist/PairedFrame.cjs.js",
+  "module": "dist/PairedFrame.ejs.js",
+  "main": "dist/PairedFrame.cjs.js",
+  "types": "dist/types/PairedFrame.d.ts",
   "repository": "https://github.com/classy-org/paired-frame",
   "author": "Tom Borger <tborger@classy.org>",
   "license": "MIT",
   "devDependencies": {
-    "@babel/core": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
+    "@babel/core": "^7.2.0",
+    "@babel/preset-env": "^7.2.0",
     "@babel/preset-react": "^7.0.0",
     "express": "^4.16.3",
     "rollup": "^0.65.0",
-    "rollup-plugin-babel": "^4.0.2",
-    "rollup-plugin-uglify": "^5.0.2"
+    "rollup-plugin-babel": "^4.0.3",
+    "rollup-plugin-uglify": "^5.0.2",
+    "tsc-watch": "^1.0.31",
+    "typescript": "^3.2.2"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c -w",
+    "build": "sh/compile.sh",
+    "dev": "sh/watch.sh",
     "build-demo": "rollup -c demo/rollup.config.js",
     "demo": "node demo"
-  }
+  },
+  "dependencies": {}
 }
