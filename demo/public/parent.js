@@ -214,7 +214,6 @@
                   this.childFrame = new PairedFrame({
                     autoNavigate: true,
                     autoResize: true,
-                    debug: true,
                     providePath: function providePath(localPath) {
                       return localPath.replace(/parent/g, 'child');
                     },
@@ -229,8 +228,9 @@
                   });
                   this.childFrame.once('ready', this.showIframe.bind(this));
                   this.childFrame.onDialog(this.openModal.bind(this));
+                  window.pairedFrame = this.childFrame;
 
-                case 5:
+                case 6:
                 case "end":
                   return _context.stop();
               }

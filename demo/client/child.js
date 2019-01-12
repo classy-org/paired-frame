@@ -21,8 +21,8 @@ angular
         url: '',
         component: 'viewRoot',
         resolve: {
-          parentFrame: function ($rootScope) {
-            $rootScope.parentFrame = new PairedFrame({
+          parentFrame: function ($rootScope, $window) {
+            $rootScope.parentFrame = $window.pairedFrame = new PairedFrame({
               autoNavigate: true,
               sendHeight: true,
               sendHistory: true,

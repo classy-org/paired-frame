@@ -12,8 +12,8 @@
       url: '',
       component: 'viewRoot',
       resolve: {
-        parentFrame: function parentFrame($rootScope) {
-          $rootScope.parentFrame = new PairedFrame({
+        parentFrame: function parentFrame($rootScope, $window) {
+          $rootScope.parentFrame = $window.pairedFrame = new PairedFrame({
             autoNavigate: true,
             sendHeight: true,
             sendHistory: true,

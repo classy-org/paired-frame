@@ -73,7 +73,6 @@ class App extends React.Component {
     this.childFrame = new PairedFrame({
       autoNavigate: true,
       autoResize: true,
-      debug: true,
       providePath: localPath => localPath.replace(/parent/g, 'child'),
       resizeElement: this.iframeWrapper.current,
       sendHistory: true,
@@ -84,6 +83,7 @@ class App extends React.Component {
     });
     this.childFrame.once('ready', this.showIframe.bind(this));
     this.childFrame.onDialog(this.openModal.bind(this));
+    window.pairedFrame = this.childFrame; 
   }
 
   render () {

@@ -1,7 +1,6 @@
 interface PairedFrameOptions {
     autoNavigate: boolean;
     autoResize: boolean;
-    debug: boolean;
     providePath: Function | null;
     resizeElement: HTMLElement | null;
     sendHeight: boolean;
@@ -21,29 +20,29 @@ export default class PairedFrame {
     private remotePath;
     private remoteHeight;
     private uniqueId;
-    private boundReceiver;
+    private boundMessageHandler;
     private pulseId;
-    constructor({ autoNavigate, autoResize, debug, providePath, resizeElement, sendHeight, sendHistory, targetOrigin, targetWindow, translatePath }: PairedFrameOptions);
+    private destroyed;
+    constructor({ autoNavigate, autoResize, providePath, resizeElement, sendHeight, sendHistory, targetOrigin, targetWindow, translatePath }: PairedFrameOptions);
     listeners(eventName: string): (Function | undefined)[];
     listenerCount(eventName: string): number;
     eventNames(): string[];
-    on(eventName: string, cb: (data?: Object) => void): this;
-    once(eventName: string, cb: (data?: Object) => void): this;
-    off(eventName: string, cb: (data?: Object) => void): this;
+    on(eventName: string, cb: (data?: Object) => any): this;
+    once(eventName: string, cb: (data?: Object) => any): this;
+    off(eventName: string, cb: (data?: Object) => any): this;
     emit(eventName: string, data?: Object): boolean;
     send(eventName: string, data?: Object): boolean;
-    private receive;
     dialog(config?: any): Promise<{}>;
-    onDialog(cb: (config: any) => void): void;
-    private resolveDialogs;
+    onDialog(cb: (config?: any) => any): this;
+    destroy(): boolean;
+    private awaitLoad;
+    private handleMessages;
     private heartbeat;
+    private handleDialogs;
     private sendHeight;
     private autoResize;
     private sendHistory;
     private autoNavigate;
-    private onReady;
-    debug(action: string, eventName: string, data?: Object): void;
-    destroy(): void;
     private init;
 }
 export {};

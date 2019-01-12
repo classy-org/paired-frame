@@ -131,11 +131,6 @@ The counterpart may optionally defer to `requestedPath` rather than deriving a
 path from `remotePath`. This allows one frame to manage route syncing for both
 frames.
 
-### debug
-
-Boolean. If true, logs debug messages to the console whenever a postMessage is
-sent or received.
-
 
 ## Methods
 
@@ -152,7 +147,8 @@ can be structured however you like.
 
 A special handler for accepting and responding to dialog requests. `callback`
 will receive the dialog `config` as its first argument and should return a
-promise that resolves with the result of the interaction.
+promise that resolves with the result of the interaction. Returns the
+PairedFrame instance for chaining.
 
 ### on(eventName, callback)
 
@@ -191,16 +187,31 @@ Returns an array of callbacks currently registered for the given event.
 
 Returns the number of callbacks currently registered for the given event.
 
+### destroy()
+
+Removes the postMessage listener. Any callbacks attached to the "destroy" event
+will be fired, after which no callbacks will be fired or postMessages sent.
+
 
 ## Built-in events
 
-* **hello:** Used to set up initial connection.
-* **ready:** Indicates that the counterpart is ready to communicate.
-* **heartbeat:** Sent every second by each frame.
-* **resize:** Indicates the counterpart's scrollHeight has changed.
-* **navigate:** Indicates the counterpart's pathname has changed.
-* **dialog-opened:** Indicates that the counterpart wishes to open a dialog.
-* **dialog-closed:** Indicates that the counterpart has resolved a dialog.
+* `load`: Indicates that both frames have loaded, but the connection has not yet been set up.
+* `ping`: Indicates that the counterpart wishes to establish a connection.
+* `pong`: Indicates that the counterpart has approved the connection.
+* `ready`: Indicates that both frames are ready to communicate.
+* `postmessage-sent`: Indicates that a postMessage has been sent to the counterpart.
+* `postmessage-received`: Indicates that a postMessage has been received from the counterpart.
+* `resize`: Indicates that the counterpart's scrollHeight has changed.
+* `height-updated`: Indicates that the local frame's height has been auto-updated in response to a `resize` event.
+* `navigate`: Indicates that the counterpart's pathname has changed.
+* `path-updated`: Indicates that the local frame's path has been auto-updated in response to a `navigate` event.
+* `dialog-opened`: Indicates that a dialog has been requested (by either frame).
+* `dialog-closed`: Indicates that a dialog has been resolved (by either frame).
+* `heartbeat`: Sent every 250ms by each frame to monitor connection.
+* `connection-lost`: Indicates that 500ms have passed without a counterpart heartbeat event.
+* `connection-restored`: Indicates that a counterpart heartbeat event has been received following a lost connection.
+* `destroy`: Fired just before the instance removes its postMessage handler and stops sending or responding to events.
+* `*`: All events. Can be used for logging.
 
 
 ## Running the demo
